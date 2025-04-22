@@ -1,88 +1,88 @@
 #!/usr/bin/env node
-// create-structure.js
+// structure-generator.js
 
 const fs = require('fs');
 const path = require('path');
 
-// --- Konfiguracja ---
-// Liczba spacji na poziom wcięcia w pliku wejściowym
+// --- Configuration ---
+// Number of spaces per indentation level in the input file
 const SPACES_PER_INDENT = 2;
-// Ścieżka do pliku z definicją struktury (pobierana z pierwszego argumentu linii komend)
+// Path to the structure definition file (retrieved from the first command line argument)
 const structureFilePath = process.argv[2];
-// Katalog bazowy, w którym struktura ma być utworzona (domyślnie bieżący katalog roboczy '.')
+// Base directory in which the structure should be created (default is current working directory '.')
 const baseDir = process.argv[3] || '.';
-// --- Koniec Konfiguracji ---
+// --- End of Configuration ---
 
 if (!structureFilePath) {
-  console.error('Błąd: Nie podano ścieżki do pliku ze strukturą!');
-  console.log('Użycie: scaffold <ścieżka_do_pliku_struktury> [katalog_docelowy]');
-  process.exit(1); // Zakończ z kodem błędu
+  console.error('Error: No path to structure file provided!');
+  console.log('Usage: scaffold <path_to_structure_file> [target_directory]');
+  process.exit(1); // Exit with error code
 }
 
-// Rozwiąż ścieżkę do pliku struktury względem bieżącego katalogu roboczego
+// Resolve the path to the structure file relative to the current working directory
 const resolvedStructurePath = path.resolve(process.cwd(), structureFilePath);
 const resolvedBaseDir = path.resolve(process.cwd(), baseDir);
 
 if (!fs.existsSync(resolvedStructurePath)) {
-  console.error(`Błąd: Plik struktury "${resolvedStructurePath}" nie istnieje!`);
+  console.error(`Error: Structure file "${resolvedStructurePath}" does not exist!`);
   process.exit(1);
 }
 
-console.log(`Odczytywanie struktury z pliku: ${resolvedStructurePath}`);
-console.log(`Tworzenie struktury w katalogu: ${resolvedBaseDir}`);
+console.log(`Reading structure from file: ${resolvedStructurePath}`);
+console.log(`Creating structure in directory: ${resolvedBaseDir}`);
 
 const structureText = fs.readFileSync(resolvedStructurePath, 'utf8');
-const lines = structureText.split('\n').filter(line => line.trim() !== ''); // Usuń puste linie
+const lines = structureText.split('\n').filter(line => line.trim() !== ''); // Remove empty lines
 
-const pathStack = []; // Stos przechowujący ścieżki nadrzędne
+const pathStack = []; // Stack storing parent paths
 
 lines.forEach(line => {
   const indentMatch = line.match(/^ */);
   const indentLevel = indentMatch ? indentMatch[0].length / SPACES_PER_INDENT : 0;
   const name = line.trim();
 
-  // Dostosuj stos ścieżek do aktualnego poziomu wcięcia
+  // Adjust the path stack to the current indentation level
   while (indentLevel < pathStack.length) {
     pathStack.pop();
   }
 
-  // Twórz ścieżki względem katalogu bazowego (resolvedBaseDir)
+  // Create paths relative to the base directory (resolvedBaseDir)
   const parentPath = path.join(resolvedBaseDir, ...pathStack);
-  const currentItemName = name.endsWith('/') ? name.slice(0, -1) : name; // Usuń '/' z końca, jeśli jest
+  const currentItemName = name.endsWith('/') ? name.slice(0, -1) : name; // Remove '/' from the end, if present
   const currentFullPath = path.join(parentPath, currentItemName);
 
-  // Sprawdź, czy to plik czy katalog
+  // Check if it's a file or directory
   const isDirectory = name.endsWith('/') || path.extname(name) === '';
 
   try {
     if (isDirectory) {
       if (!fs.existsSync(currentFullPath)) {
         fs.mkdirSync(currentFullPath);
-        console.log(`✅ Utworzono katalog: ${currentFullPath}`);
+        console.log(`✅ Created directory: ${currentFullPath}`);
       } else {
-        console.log(`🆗 Katalog już istnieje: ${currentFullPath}`);
+        console.log(`🆗 Directory already exists: ${currentFullPath}`);
       }
-      // Dodaj aktualny katalog do stosu dla kolejnych zagnieżdżonych elementów
+      // Add the current directory to the stack for subsequent nested elements
       pathStack.push(currentItemName);
     } else {
-      // Upewnij się, że katalog nadrzędny istnieje
+      // Make sure the parent directory exists
       if (!fs.existsSync(parentPath)) {
          fs.mkdirSync(parentPath, { recursive: true });
-         console.warn(`⚠️ Utworzono brakujący katalog nadrzędny: ${parentPath}`);
+         console.warn(`⚠️ Created missing parent directory: ${parentPath}`);
       }
 
       if (!fs.existsSync(currentFullPath)) {
-        fs.writeFileSync(currentFullPath, ''); // Utwórz pusty plik
-        console.log(`✅ Utworzono plik:    ${currentFullPath}`);
+        fs.writeFileSync(currentFullPath, ''); // Create an empty file
+        console.log(`✅ Created file:    ${currentFullPath}`);
       } else {
-        console.log(`🆗 Plik już istnieje:   ${currentFullPath}`);
+        console.log(`🆗 File already exists:   ${currentFullPath}`);
       }
-      // Pliki nie zmieniają stosu ścieżek
+      // Files don't change the path stack
     }
   } catch (error) {
-    console.error(`❌ Błąd podczas tworzenia "${currentFullPath}": ${error.message}`);
-    // Możesz zdecydować, czy kontynuować, czy przerwać (process.exit(1))
+    console.error(`❌ Error while creating "${currentFullPath}": ${error.message}`);
+    // You can decide whether to continue or stop (process.exit(1))
   }
 });
 
-console.log('\n🎉 Zakończono tworzenie struktury.');
+console.log('\n🎉 Structure creation completed.');

@@ -4,10 +4,13 @@ A simple CLI tool that generates file and directory structures based on a text f
 # Installation
 Global Installation
 ```npm install -g generatestructureinator```
+
 Local Installation
 ```npm install generatestructureinator```
+
 Usage
 ```generatestructureinator <structure-file-path> [target-directory]```
+
 
 - `<structure-file-path>`: Path to the file containing your structure definition (required)
 - `[target-directory]`: Directory where the structure should be created (optional, defaults to current directory)
