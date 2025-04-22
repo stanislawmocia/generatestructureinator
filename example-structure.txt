@@ -1,0 +1,10 @@
+.gitignore
+.env.example
+package.json
+tsconfig.json
+src/
+  main.ts
+  app.module.ts
+  email/
+    email.module.ts
+    email.service.ts

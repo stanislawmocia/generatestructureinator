@@ -1,0 +1,17 @@
+{
+    "name": "generatestructureinator",
+    "version": "1.0.0",
+    "description": "Genearet file and directory structure based on a text file",
+    "main": "scaffold.js",
+    "bin": {
+        "scaffold": "./scaffold.js"
+    },
+    "keywords": [
+      "cli",
+      "scaffold",
+      "structure",
+      "generator"
+    ],
+    "author": "Stanislaw Mocia",
+    "license": "ISC"
+}
